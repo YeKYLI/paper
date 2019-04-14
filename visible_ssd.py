@@ -7,7 +7,8 @@ print "hehehehheh"
 #hyperparameter
 prototxt = "data/1.prototxt"
 caffemodel = "data/1.caffemodel"
-imagename = "data/5.jpg"
+imagename = "/home/data4t/zhijiang/dataset/car-720x480/images/val-2003-720x480/day_normal_test_2/day_qingdao_07141619_0115.MP4_0027.jpg"
+#imagename = "data/5.jpg"
 anch = [10, 55, 99, 144]
 anch_num = 8
 aspect_ratio = 1.15

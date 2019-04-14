@@ -2,11 +2,14 @@ import caffe
 import cv2
 import numpy as np
 
+print "hehehehheh"
+
 #hyperparameter
 prototxt = "data/1.prototxt"
 caffemodel = "data/1.caffemodel"
 imagename = "data/5.jpg"
 anch = [10, 55, 99, 144]
+anch_num = 8
 aspect_ratio = 1.15
 ssd = caffe.Net(prototxt, caffemodel, caffe.TEST)
 data_height = ssd.blobs['data'].data.shape[2]
@@ -36,19 +39,30 @@ pred = np.array(ssd.blobs['detection_out1'].data[...])
 pred = np.squeeze(pred)
 print "predict : " + str(len(pred)) + " boxes"
 
+#test
+count = 0
+for i in range(feature_h):
+    for j in range(feature_w):
+        for k in range(anch_num):
+            if pred[anch_num * (feature_w * i + j) + k][2] > 0.01:
+                count = count + 1
+                print str(count) + " " + str(i)+ " " + str(j)+ " " + str(k) + " "  + str(pred[anch_num * (feature_w * i + j) + k][2])
+
+test = 0;
 for i in range(len(pred)):
-    if pred[i][2] > 0.9 and pred[i][1] == 1:
-        print "confidence id: " + str(i) + " " + str(pred[i][1]) + " " + str(pred[i][2]) + " " + str(pred[i][3] * float(data_width)) + " " + str(pred[i][4] * float(data_height)) + " " + str(pred[i][6] * float(data_height))
+    if pred[i][2] > 0.01 and pred[i][1] == 1:
+        test = test + 1
+        print str(test) +" " +  "confidence id: " + str(i) + " " + str(pred[i][1]) + " " + str(pred[i][2]) + " " + str(pred[i][3] * float(data_width)) + " " + str(pred[i][4] * float(data_height)) + " " + str(pred[i][6] * float(data_height))
         cv2.rectangle(image, (int(pred[i][3] * float(data_width)), int(pred[i][4] * float(data_height))), (int((pred[i][5]) * float(data_width)), int(pred[i][6] * float(data_height))), (0, 0, 255), 1)
 #paint the anchor
-for i in anch:
-    cv2.rectangle(image, (0, 0), (i, i), (0, 0, 0), 2)
-    cv2.rectangle(image, (0, 0), (int(i * 1 ** aspect_ratio), int(i / (1 ** aspect_ratio))), (0, 0, 0), 2)
+#for i in anch:
+#    cv2.rectangle(image, (0, 0), (i, i), (0, 0, 0), 2)
+#    cv2.rectangle(image, (0, 0), (int(i * 1 ** aspect_ratio), int(i / (1 ** aspect_ratio))), (0, 0, 0), 2)
 #paint the prior box
-anchor = np.array(ssd.blobs['detection_out2'].data[...])
-anchor = np.squeeze(anchor)
+#anchor = np.array(ssd.blobs['detection_out2'].data[...])
+#anchor = np.squeeze(anchor)
 #for j in range(len(anchor)):
-#    if pred[j][2] > 0.2:
+#    if pred[j][2] > 0.01 and pred[j][1] == 1:
 #        cv2.rectangle(image, (int(anchor[j][3] * float(data_width)), int(anchor[j][4] * float(data_height))), (int((anchor[j][5]) * float(data_width)), int(anchor[j][6] * float(data_height))), (0, 255, 0), 1);
 #
 cv2.imshow("out", image)

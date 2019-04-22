@@ -1,6 +1,7 @@
 import caffe
 import numpy as np
 import cv2
+from util.box import compute_iou
 
 val_file = open("data/val-2003-720x480.txt")
 prototxt = "data/1.prototxt"
@@ -9,27 +10,6 @@ ssd = caffe.Net(prototxt, caffemodel, caffe.TEST)
 data_width = ssd.blobs['data'].data.shape[3]
 data_height = ssd.blobs['data'].data.shape[2]
 
-#if area_1 composed of area_2 , warning #####################
-#here i have somt questions
-
-def compute_iou(x1min, y1min, x1max, y1max, x2min, y2min, x2max, y2max):
-    if x1min > x2max or x1max < x2min:
-        return 0
-    else:
-        xmin = max(x1min, x2min)
-        xmax = min(x1max, x2max)
-    if y1min > y2max or y1max < y2min:
-        return 0
-    else:
-        ymin = max(y1min, y2min)
-        ymax = min(y1max, y2max)
-    area_1 = (x1max - x1min) * (y1max - y1min)
-    area_2 = (x2max - x2min) * (y2max - y2min)
-    area_iou = (xmax - xmin) * (ymax - ymin)
-    iou = float(area_iou) / float(area_1 + area_2 - area_iou)
-    return iou
-
-#get th pred through ssd infer
 def ssd_infer(image_path):
     image = caffe.io.load_image(image_path)
     image = caffe.io.resize(image, (data_height, data_width, 3))
@@ -38,19 +18,21 @@ def ssd_infer(image_path):
     output = ssd.forward()
     pred = np.array(ssd.blobs['detection_out1'].data[...])
     pred = np.squeeze(pred)
+    total_predict = np.array(ssd.blobs['detection_out2'].data[...])
+    total_predict = np.squeeze(total_predict)
+    total_predict = int(total_predict[0][0])
     pred_boxes = []
-    for i in range(len(pred)):
-        if pred[i][2] < 0.1:
-            continue
+    for i in range(total_predict):
+        print "test : " + str(i)
         pred_boxes.append(pred[i][3])
         pred_boxes.append(pred[i][4])
         pred_boxes.append(pred[i][5])
         pred_boxes.append(pred[i][6])
-    return pred_boxes
-        
+    return pred_boxes, total_predict
 
 lines = val_file.readlines()
 box_iou = []
+num_all = 0
 test = 0
 for line in lines:
     line = line.strip("\n")
@@ -58,10 +40,10 @@ for line in lines:
     image_w = image[1]
     image_h = image[0]
     test += 1
-    if test > 1000:
-        break
-    pred_boxes = ssd_infer(line)
-    print len(pred_boxes)
+#    if test > 10:
+#        break
+    pred_boxes, num = ssd_infer(line)
+    num_all += num
     line = line.replace("images", "original_labels")
     line = line.replace("jpg", "txt")
     gts = open(line)
@@ -74,13 +56,19 @@ for line in lines:
             if best_iou < iou:
                 best_iou = iou
         box_iou.append(best_iou)
+        print best_iou
 
-accurate = 0
+#compute map
+accurate = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 for i in range(len(box_iou)):
-    if(box_iou[i] > 0.5):
-        accurate += 1
-print accurate
-print len(box_iou)
-AP50 = float(accurate) / float(len(box_iou)) 
-print AP50
+    for j in range(10):
+        if box_iou[i] > (0.5 + 0.05 * j):
+            accurate[j] += 1
+AP = 0;
+for j in range(10):
+    AP_J = float(accurate[j]) / float(len(box_iou))
+    print str(j) + " " + str(AP_J)
+    AP += AP_J
+AP /= 10
+print AP
 

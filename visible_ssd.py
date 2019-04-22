@@ -2,12 +2,11 @@ import caffe
 import cv2
 import numpy as np
 
-print "hehehehheh"
-
 #hyperparameter
 prototxt = "data/1.prototxt"
 caffemodel = "data/1.caffemodel"
-imagename = "/home/data4t/zhijiang/dataset/car-720x480/images/val-2003-720x480/day_normal_test_2/day_qingdao_07141619_0115.MP4_0027.jpg"
+#imagename = "/home/data4t/zhijiang/dataset/car-720x480/images/val-2003-720x480/day_normal_test_2/day_qingdao_07141619_0115.MP4_0027.jpg"
+imagename = "/home/data4t/zhijiang/dataset/car-720x480/images/val-2003-720x480/day_normal_test_2/2015_0207_180105_032.MOV_0028.jpg"
 #imagename = "data/5.jpg"
 anch = [10, 55, 99, 144]
 anch_num = 8
@@ -56,15 +55,15 @@ for i in range(len(pred)):
         print str(test) +" " +  "confidence id: " + str(i) + " " + str(pred[i][1]) + " " + str(pred[i][2]) + " " + str(pred[i][3] * float(data_width)) + " " + str(pred[i][4] * float(data_height)) + " " + str(pred[i][6] * float(data_height))
         cv2.rectangle(image, (int(pred[i][3] * float(data_width)), int(pred[i][4] * float(data_height))), (int((pred[i][5]) * float(data_width)), int(pred[i][6] * float(data_height))), (0, 0, 255), 1)
 #paint the anchor
-#for i in anch:
-#    cv2.rectangle(image, (0, 0), (i, i), (0, 0, 0), 2)
-#    cv2.rectangle(image, (0, 0), (int(i * 1 ** aspect_ratio), int(i / (1 ** aspect_ratio))), (0, 0, 0), 2)
+for i in anch:
+    cv2.rectangle(image, (0, 0), (i, i), (0, 0, 0), 2)
+    cv2.rectangle(image, (0, 0), (int(i * 1 ** aspect_ratio), int(i / (1 ** aspect_ratio))), (0, 0, 0), 2)
 #paint the prior box
-#anchor = np.array(ssd.blobs['detection_out2'].data[...])
-#anchor = np.squeeze(anchor)
-#for j in range(len(anchor)):
-#    if pred[j][2] > 0.01 and pred[j][1] == 1:
-#        cv2.rectangle(image, (int(anchor[j][3] * float(data_width)), int(anchor[j][4] * float(data_height))), (int((anchor[j][5]) * float(data_width)), int(anchor[j][6] * float(data_height))), (0, 255, 0), 1);
-#
+anchor = np.array(ssd.blobs['detection_out2'].data[...])
+anchor = np.squeeze(anchor)
+for j in range(len(anchor)):
+    if pred[j][2] > 0.01 and pred[j][1] == 1:
+        cv2.rectangle(image, (int(anchor[j][3] * float(data_width)), int(anchor[j][4] * float(data_height))), (int((anchor[j][5]) * float(data_width)), int(anchor[j][6] * float(data_height))), (0, 255, 0), 1);
+
 cv2.imshow("out", image)
 cv2.waitKey(0)
